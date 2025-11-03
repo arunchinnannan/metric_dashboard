@@ -1,0 +1,56 @@
+version: '3.8'
+
+services:
+  backend:
+    build:
+      context: ..
+      dockerfile: deployment/Dockerfile.backend
+    ports:
+      - "5000:5000"
+    environment:
+      - NODE_ENV=development
+      - DB_HOST=postgres
+      - DB_PORT=5432
+      - DB_NAME=kafka_metrics
+      - DB_USER=kafka_user
+      - DB_PASSWORD=kafka_password
+      - PORT=5000
+    depends_on:
+      - postgres
+    networks:
+      - kafka-dashboard-network
+    restart: unless-stopped
+
+  frontend:
+    build:
+      context: ..
+      dockerfile: deployment/Dockerfile.frontend
+    ports:
+      - "8080:8080"
+    depends_on:
+      - backend
+    networks:
+      - kafka-dashboard-network
+    restart: unless-stopped
+
+  postgres:
+    image: postgres:15-alpine
+    environment:
+      - POSTGRES_DB=kafka_metrics
+      - POSTGRES_USER=kafka_user
+      - POSTGRES_PASSWORD=kafka_password
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ../backend/init.sql:/docker-entrypoint-initdb.d/init.sql
+    networks:
+      - kafka-dashboard-network
+    restart: unless-stopped
+
+volumes:
+  postgres_data:
+
+networks:
+  kafka-dashboard-network:
+    driver: bridge
