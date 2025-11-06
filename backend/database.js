@@ -10,6 +10,10 @@ const pool = new Pool({
   max: 10,
   idleTimeoutMillis: 30000,
   connectionTimeoutMillis: 2000,
+  // Set schema search path to include metrics schema
+  options: process.env.DB_SCHEMA_PATH || '-c search_path=metrics,public',
+  // SSL configuration for production
+  ssl: process.env.NODE_ENV === 'production' ? { rejectUnauthorized: false } : false,
 });
 
 pool.on('error', (err) => {
@@ -25,9 +29,36 @@ pool.on('connect', () => {
 const testConnection = async () => {
   try {
     const client = await pool.connect();
+
+    // Test basic connection
     await client.query('SELECT NOW()');
-    client.release();
     console.log('✅ Database connection test successful');
+
+    // Test schema access
+    try {
+      const schemaTest = await client.query(`
+        SELECT schemaname 
+        FROM pg_tables 
+        WHERE schemaname = 'metrics' 
+        AND tablename = 'kafka_application_metrics'
+      `);
+
+      if (schemaTest.rows.length > 0) {
+        console.log('✅ Metrics schema and table accessible');
+      } else {
+        console.warn('⚠️  Metrics schema or table not found');
+      }
+
+      // Test actual table access
+      const tableTest = await client.query('SELECT COUNT(*) FROM metrics.kafka_application_metrics LIMIT 1');
+      console.log('✅ Table access test successful');
+
+    } catch (schemaErr) {
+      console.error('❌ Schema/Table access test failed:', schemaErr.message);
+      console.log('Available schemas:', await client.query('SELECT schema_name FROM information_schema.schemata'));
+    }
+
+    client.release();
   } catch (err) {
     console.error('❌ Database connection test failed:', err.message);
     throw err;
