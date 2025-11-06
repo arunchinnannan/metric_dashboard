@@ -108,8 +108,8 @@ export default function MetricsTable({ data, filters, loading }) {
                   <td className="px-4 py-3 text-slate-300">{row.namespace}</td>
                   <td className="px-4 py-3 text-slate-300">{row.application_name || '-'}</td>
                   <td className="px-4 py-3 text-slate-300">{row.environment || '-'}</td>
-                  <td className="px-4 py-3 text-right text-cyan-400">{formatBytes(parseInt(row.consumedbytes))}</td>
-                  <td className="px-4 py-3 text-right text-purple-400">{formatBytes(parseInt(row.producedbytes))}</td>
+                  <td className="px-4 py-3 text-right text-cyan-400">{formatBytes(row.consumedbytes)}</td>
+                  <td className="px-4 py-3 text-right text-purple-400">{formatBytes(row.producedbytes)}</td>
                 </tr>
                 {expandedRows.has(idx) && (
                   <tr className="border-t border-white border-opacity-10 bg-white bg-opacity-5">

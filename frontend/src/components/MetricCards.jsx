@@ -30,12 +30,12 @@ export default function MetricCards({ summary, loading }) {
     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-6">
       <Card 
         title="Total Consumed" 
-        value={summary ? formatBytes(parseInt(summary.total_consumed)) : '0 B'}
+        value={summary ? formatBytes(summary.total_consumed) : '0 B'}
         icon="📥"
       />
       <Card 
         title="Total Produced" 
-        value={summary ? formatBytes(parseInt(summary.total_produced)) : '0 B'}
+        value={summary ? formatBytes(summary.total_produced) : '0 B'}
         icon="📤"
       />
       <Card 

@@ -40,8 +40,8 @@ export default function ExportButton({ tableData, allData }) {
     // Sheet 1: Summary
     const summaryData = [
       ['Metric', 'Value'],
-      ['Total Consumed Bytes', formatBytes(parseInt(allData.summary?.total_consumed || 0))],
-      ['Total Produced Bytes', formatBytes(parseInt(allData.summary?.total_produced || 0))],
+      ['Total Consumed Bytes', formatBytes(allData.summary?.total_consumed || 0)],
+      ['Total Produced Bytes', formatBytes(allData.summary?.total_produced || 0)],
       ['Active Applications', allData.summary?.active_applications || 0],
       ['Active Clusters', allData.summary?.active_clusters || 0],
       ['Export Date', new Date().toLocaleString()],
