@@ -1,0 +1,71 @@
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: app-metrics-dashboard-ingress
+  namespace: monitoring
+  annotations:
+    # NGINX Ingress Controller annotations (matching Prometheus pattern)
+    nginx.ingress.kubernetes.io/rewrite-target: /$2
+    nginx.ingress.kubernetes.io/ssl-redirect: "true"
+    nginx.ingress.kubernetes.io/force-ssl-redirect: "true"
+    
+    # Rate limiting
+    nginx.ingress.kubernetes.io/limit-rps: "100"
+    
+    # CORS (if needed)
+    nginx.ingress.kubernetes.io/enable-cors: "true"
+    nginx.ingress.kubernetes.io/cors-allow-origin: "*"
+    
+    # Timeouts
+    nginx.ingress.kubernetes.io/proxy-connect-timeout: "60"
+    nginx.ingress.kubernetes.io/proxy-send-timeout: "60"
+    nginx.ingress.kubernetes.io/proxy-read-timeout: "60"
+spec:
+  ingressClassName: nginx
+  rules:
+  - host: utils-labur-prod.az.agc.att.com  # Same host as Prometheus
+    http:
+      paths:
+      # Backend API path - matches /app-metrics-dashboard/api/*
+      - path: /app-metrics-dashboard/api(/|$)(.*)
+        pathType: ImplementationSpecific
+        backend:
+          service:
+            name: backend
+            port:
+              number: 5000
+      # Frontend path - matches /app-metrics-dashboard/*
+      - path: /app-metrics-dashboard(/|$)(.*)
+        pathType: ImplementationSpecific
+        backend:
+          service:
+            name: frontend
+            port:
+              number: 80
+  # TLS configuration (optional)
+  # tls:
+  # - hosts:
+  #   - utils-labur-prod.az.agc.att.com
+  #   secretName: app-metrics-dashboard-tls
+---
+# Alternative: LoadBalancer Service (if not using Ingress)
+apiVersion: v1
+kind: Service
+metadata:
+  name: app-metrics-dashboard-loadbalancer
+  namespace: monitoring
+  labels:
+    app: app-metrics-dashboard
+  annotations:
+    # Azure Load Balancer annotations
+    service.beta.kubernetes.io/azure-load-balancer-internal: "false"  # Set to "true" for internal LB
+spec:
+  type: LoadBalancer
+  selector:
+    app: app-metrics-dashboard
+    component: frontend
+  ports:
+  - name: http
+    port: 80
+    targetPort: 8080
+    protocol: TCP
