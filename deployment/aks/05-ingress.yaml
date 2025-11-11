@@ -28,7 +28,8 @@ spec:
   - host: utils-labur-prod.az.agc.att.com  # Same host as Prometheus
     http:
       paths:
-      # Backend API path - NO rewrite, nginx in frontend pod will handle it
+      # API path must come FIRST (more specific path)
+      # Ingress routes to frontend, frontend nginx proxies to backend
       - path: /app-metrics-dashboard/api
         pathType: Prefix
         backend:
