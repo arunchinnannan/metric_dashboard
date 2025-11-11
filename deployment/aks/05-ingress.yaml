@@ -4,10 +4,12 @@ metadata:
   name: app-metrics-dashboard-ingress
   namespace: monitoring
   annotations:
-    # NGINX Ingress Controller annotations (matching Prometheus pattern)
-    nginx.ingress.kubernetes.io/rewrite-target: /$2
+    # NGINX Ingress Controller annotations
     nginx.ingress.kubernetes.io/ssl-redirect: "true"
     nginx.ingress.kubernetes.io/force-ssl-redirect: "true"
+    
+    # Use regex to rewrite paths - API calls go directly to backend, frontend serves static files
+    nginx.ingress.kubernetes.io/use-regex: "true"
     
     # Rate limiting
     nginx.ingress.kubernetes.io/limit-rps: "100"
@@ -26,17 +28,17 @@ spec:
   - host: utils-labur-prod.az.agc.att.com  # Same host as Prometheus
     http:
       paths:
-      # Backend API path - matches /app-metrics-dashboard/api/*
-      - path: /app-metrics-dashboard/api(/|$)(.*)
-        pathType: ImplementationSpecific
+      # Backend API path - NO rewrite, nginx in frontend pod will handle it
+      - path: /app-metrics-dashboard/api
+        pathType: Prefix
         backend:
           service:
-            name: backend
+            name: frontend
             port:
-              number: 5000
-      # Frontend path - matches /app-metrics-dashboard/*
-      - path: /app-metrics-dashboard(/|$)(.*)
-        pathType: ImplementationSpecific
+              number: 80
+      # Frontend path - serves static files and proxies /api to backend
+      - path: /app-metrics-dashboard
+        pathType: Prefix
         backend:
           service:
             name: frontend
