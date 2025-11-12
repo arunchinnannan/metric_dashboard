@@ -1,0 +1,113 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: app-metrics-dashboard-backend
+  namespace: monitoring
+  labels:
+    app: app-metrics-dashboard
+    component: backend
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: app-metrics-dashboard
+      component: backend
+  template:
+    metadata:
+      labels:
+        app: app-metrics-dashboard
+        component: backend
+    spec:
+      containers:
+      - name: backend
+        image: your-acr.azurecr.io/app-metrics-dashboard-backend:latest
+        imagePullPolicy: Always
+        ports:
+        - containerPort: 5000
+          name: http
+          protocol: TCP
+        env:
+        - name: DB_HOST
+          valueFrom:
+            configMapKeyRef:
+              name: app-metrics-dashboard-config
+              key: DB_HOST
+        - name: DB_PORT
+          valueFrom:
+            configMapKeyRef:
+              name: app-metrics-dashboard-config
+              key: DB_PORT
+        - name: DB_NAME
+          valueFrom:
+            configMapKeyRef:
+              name: app-metrics-dashboard-config
+              key: DB_NAME
+        - name: DB_USER
+          valueFrom:
+            configMapKeyRef:
+              name: app-metrics-dashboard-config
+              key: DB_USER
+        - name: DB_PASSWORD
+          valueFrom:
+            secretKeyRef:
+              name: app-metrics-dashboard-secrets
+              key: DB_PASSWORD
+        - name: NODE_ENV
+          valueFrom:
+            configMapKeyRef:
+              name: app-metrics-dashboard-config
+              key: NODE_ENV
+        - name: PORT
+          valueFrom:
+            configMapKeyRef:
+              name: app-metrics-dashboard-config
+              key: PORT
+        resources:
+          requests:
+            memory: "256Mi"
+            cpu: "250m"
+          limits:
+            memory: "512Mi"
+            cpu: "500m"
+        livenessProbe:
+          httpGet:
+            path: /health
+            port: 5000
+          initialDelaySeconds: 30
+          periodSeconds: 10
+          timeoutSeconds: 5
+          failureThreshold: 3
+        readinessProbe:
+          httpGet:
+            path: /health
+            port: 5000
+          initialDelaySeconds: 10
+          periodSeconds: 5
+          timeoutSeconds: 3
+          failureThreshold: 3
+        securityContext:
+          runAsNonRoot: true
+          # runAsUser: 1001  # Defined in Dockerfile
+          allowPrivilegeEscalation: false
+          capabilities:
+            drop:
+            - ALL
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: backend
+  namespace: monitoring
+  labels:
+    app: app-metrics-dashboard
+    component: backend
+spec:
+  selector:
+    app: app-metrics-dashboard
+    component: backend
+  ports:
+  - name: http
+    port: 5000
+    targetPort: 5000
+    protocol: TCP
+  type: ClusterIP

@@ -11,9 +11,13 @@ export const formatBytes = (bytes) => {
   if (numBytes === 0 || isNaN(numBytes)) return '0 B'
   
   const k = 1024
-  const sizes = ['B', 'KB', 'MB', 'GB', 'TB']
+  const sizes = ['B', 'KB', 'MB', 'GB', 'TB', 'PB', 'EB', 'ZB', 'YB']
   const i = Math.floor(Math.log(numBytes) / Math.log(k))
-  return parseFloat((numBytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i]
+  
+  // Ensure index doesn't exceed array bounds
+  const sizeIndex = Math.min(i, sizes.length - 1)
+  
+  return parseFloat((numBytes / Math.pow(k, sizeIndex)).toFixed(2)) + ' ' + sizes[sizeIndex]
 }
 
 export const formatDate = (dateStr) => {

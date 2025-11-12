@@ -7,11 +7,19 @@ WORKDIR /app
 # Copy package files
 COPY backend/package*.json ./
 
-# Install dependencies
-RUN npm ci --only=production
+# Copy source code files first
+COPY backend/server.js ./
+COPY backend/database.js ./
+COPY backend/.env.example ./
+COPY backend/controllers ./controllers
+COPY backend/migrations ./migrations
 
-# Copy source code
-COPY backend/ .
+# Option 1: Copy pre-built Alpine node_modules tarball and extract (for offline/air-gapped builds - CURRENT)
+COPY backend/node_modules-linux.tar.gz ./
+RUN tar -xzf node_modules-linux.tar.gz && rm node_modules-linux.tar.gz
+
+# Option 2: Download packages during build (uncomment if internet is available)
+# RUN npm ci --omit=dev
 
 # Create non-root user
 RUN addgroup -g 1001 -S nodejs

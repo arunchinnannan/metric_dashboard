@@ -2,7 +2,10 @@ import React, { useState } from 'react'
 import { formatBytes, formatDate } from '../utils/formatters'
 import axios from 'axios'
 
-const API_URL = 'http://localhost:5000/api'
+// Use base path for API calls - nginx will proxy to backend service
+// In production: /app-metrics-dashboard/api -> nginx -> backend:5000/api
+// In dev: /api -> vite proxy -> localhost:5000/api
+const API_URL = import.meta.env.BASE_URL === '/' ? '/api' : '/app-metrics-dashboard/api'
 
 export default function MetricsTable({ data, filters, loading }) {
   const [page, setPage] = useState(1)

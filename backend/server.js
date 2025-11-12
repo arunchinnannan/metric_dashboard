@@ -35,10 +35,14 @@ app.post('/api/table-data', metricsController.getTableData);
 app.post('/api/application-performance', metricsController.getApplicationPerformance);
 app.post('/api/mots-grouping', metricsController.getMotsGrouping);
 
-app.use(express.static(path.join(__dirname, '../frontend/dist')));
-app.get('*', (req, res) => {
-  res.sendFile(path.join(__dirname, '../frontend/dist/index.html'));
-});
+// In Kubernetes, frontend is served by a separate nginx pod
+// Only serve static files in local development
+if (process.env.NODE_ENV !== 'production') {
+  app.use(express.static(path.join(__dirname, '../frontend/dist')));
+  app.get('*', (req, res) => {
+    res.sendFile(path.join(__dirname, '../frontend/dist/index.html'));
+  });
+}
 
 const PORT = process.env.PORT || 5000;
 

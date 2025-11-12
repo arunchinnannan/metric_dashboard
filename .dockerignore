@@ -1,0 +1,12 @@
+# Ignore other unnecessary files
+**/.git
+**/.gitignore
+**/.vscode
+**/.idea
+**/*.log
+**/dist
+**/build
+
+# Don't ignore the node_modules tarballs - we need them for offline builds
+!frontend/node_modules-linux.tar.gz
+!backend/node_modules-linux.tar.gz
